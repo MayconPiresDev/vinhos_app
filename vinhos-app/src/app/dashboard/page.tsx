@@ -8,21 +8,27 @@ import {
 } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { motion } from "framer-motion"
 import {
     ResponsiveContainer,
     LineChart,
     Line,
     XAxis,
     YAxis,
-    Tooltip,
+    Tooltip as RechartsTooltip,
     PieChart,
     Pie,
     Cell,
 } from "recharts"
 import { useEffect, useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { PageWrapper } from "@/components/ui/page-wrapper"
 
 const cores = ["#10b981", "#ef4444", "#facc15"]
 
@@ -92,16 +98,11 @@ export default function DashboardPage() {
     ]
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="space-y-8"
-        >
+        <PageWrapper>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <h2 className="text-2xl font-semibold">Dashboard</h2>
 
-                <Select value={periodo} onValueChange={(v) => setPeriodo(v)}>
+                <Select value={periodo} onValueChange={(v: "30" | "90" | "360") => setPeriodo(v)}>
                     <SelectTrigger className="w-48">
                         <SelectValue placeholder="Período" />
                     </SelectTrigger>
@@ -141,8 +142,13 @@ export default function DashboardPage() {
                                 <LineChart data={dadosSimulados.faturamento[periodo]}>
                                     <XAxis dataKey="mes" />
                                     <YAxis />
-                                    <Tooltip />
-                                    <Line type="monotone" dataKey="valor" stroke="#841E33" strokeWidth={3} />
+                                    <RechartsTooltip />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="valor"
+                                        stroke="#841E33"
+                                        strokeWidth={3}
+                                    />
                                 </LineChart>
                             </ResponsiveContainer>
                         )}
@@ -165,16 +171,19 @@ export default function DashboardPage() {
                                         label
                                     >
                                         {dadosSimulados.assinantes.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={cores[index % cores.length]} />
+                                            <Cell
+                                                key={`cell-${index}`}
+                                                fill={cores[index % cores.length]}
+                                            />
                                         ))}
                                     </Pie>
-                                    <Tooltip />
+                                    <RechartsTooltip />
                                 </PieChart>
                             </ResponsiveContainer>
                         )}
                     </CardContent>
                 </Card>
             </div>
-        </motion.div>
+        </PageWrapper>
     )
 }

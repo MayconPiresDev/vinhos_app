@@ -8,6 +8,10 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import {
+    Avatar,
+    AvatarFallback,
+} from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import {
     DropdownMenu,
@@ -17,7 +21,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
     Select,
     SelectTrigger,
@@ -25,12 +28,11 @@ import {
     SelectContent,
     SelectItem,
 } from "@/components/ui/select"
-import {
-    Avatar,
-    AvatarFallback,
-} from "@/components/ui/avatar"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { MoreHorizontal } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { PageWrapper } from "@/components/ui/page-wrapper"
 
 type Assinante = {
     nome: string
@@ -75,6 +77,12 @@ const dadosBase: Assinante[] = [
 export default function AssinantesPage() {
     const [busca, setBusca] = useState("")
     const [filtroStatus, setFiltroStatus] = useState("Todos")
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        const timer = setTimeout(() => setLoading(false), 1200)
+        return () => clearTimeout(timer)
+    }, [])
 
     const assinantes = dadosBase.filter((a) => {
         const nomeMatch = a.nome.toLowerCase().includes(busca.toLowerCase())
@@ -83,7 +91,7 @@ export default function AssinantesPage() {
     })
 
     return (
-        <div className="space-y-6">
+        <PageWrapper>
             <h2 className="text-2xl font-semibold">Assinantes</h2>
 
             {/* Filtros */}
@@ -96,7 +104,7 @@ export default function AssinantesPage() {
                 />
                 <Select value={filtroStatus} onValueChange={setFiltroStatus}>
                     <SelectTrigger className="w-full md:w-52">
-                        <SelectValue />
+                        <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="Todos">Todos</SelectItem>
@@ -106,76 +114,91 @@ export default function AssinantesPage() {
                 </Select>
             </div>
 
-            {/* Tabela */}
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Nome</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Renovação</TableHead>
-                        <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {assinantes.length === 0 ? (
+            {/* Tabela ou Skeleton */}
+            {loading ? (
+                <div className="space-y-3 mt-6">
+                    <Skeleton className="h-8 w-full rounded-md" />
+                    <Skeleton className="h-8 w-full rounded-md" />
+                    <Skeleton className="h-8 w-full rounded-md" />
+                </div>
+            ) : (
+                <Table className="mt-4">
+                    <TableHeader>
                         <TableRow>
-                            <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                                Nenhum assinante encontrado.
-                            </TableCell>
+                            <TableHead>Nome</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Renovação</TableHead>
+                            <TableHead className="text-right">Ações</TableHead>
                         </TableRow>
-                    ) : (
-                        assinantes.map((assinante, index) => (
-                            <TableRow key={index}>
-                                <TableCell className="flex items-center gap-3">
-                                    <Avatar className="h-8 w-8">
-                                        <AvatarFallback>
-                                            {assinante.nome
-                                                .split(" ")
-                                                .map((n) => n[0])
-                                                .join("")
-                                                .slice(0, 2)
-                                                .toUpperCase()}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    {assinante.nome}
-                                </TableCell>
-                                <TableCell className="text-muted-foreground">
-                                    {assinante.email}
-                                </TableCell>
-                                <TableCell>
-                                    <Badge
-                                        variant={
-                                            assinante.status === "Ativo" ? "default" : "destructive"
-                                        }
-                                    >
-                                        {assinante.status}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="text-muted-foreground">
-                                    {assinante.renovacao}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon">
-                                                <MoreHorizontal className="w-4 h-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuItem>Ver detalhes</DropdownMenuItem>
-                                            <DropdownMenuItem>Editar</DropdownMenuItem>
-                                            <DropdownMenuItem className="text-red-600">
-                                                Excluir
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
+                    </TableHeader>
+                    <TableBody>
+                        {assinantes.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                                    Nenhum assinante encontrado.
                                 </TableCell>
                             </TableRow>
-                        ))
-                    )}
-                </TableBody>
-            </Table>
-        </div>
+                        ) : (
+                            assinantes.map((assinante, index) => (
+                                <TableRow key={index}>
+                                    <TableCell className="flex items-center gap-3">
+                                        <Avatar className="h-8 w-8">
+                                            <AvatarFallback>
+                                                {assinante.nome
+                                                    .split(" ")
+                                                    .map((n) => n[0])
+                                                    .join("")
+                                                    .slice(0, 2)
+                                                    .toUpperCase()}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        {assinante.nome}
+                                    </TableCell>
+                                    <TableCell className="text-muted-foreground">
+                                        {assinante.email}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge
+                                            variant={
+                                                assinante.status === "Ativo" ? "default" : "destructive"
+                                            }
+                                        >
+                                            {assinante.status}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-muted-foreground">
+                                        {assinante.renovacao}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button variant="ghost" size="icon">
+                                                            <MoreHorizontal className="w-4 h-4" />
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        Ações do assinante
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem>Ver detalhes</DropdownMenuItem>
+                                                <DropdownMenuItem>Editar</DropdownMenuItem>
+                                                <DropdownMenuItem className="text-red-600">
+                                                    Excluir
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            )}
+        </PageWrapper>
     )
 }
